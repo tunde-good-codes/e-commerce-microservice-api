@@ -1,0 +1,32 @@
+{
+  "name": "my-microservices-project",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:all": "concurrently \"npm run dev:auth\"  \"npm run dev:gateway\"",
+    "dev:auth": "cd apps/auth-service && npm run dev",
+    "dev:users": "cd apps/user-service && npm run dev",
+    "dev:gateway": "cd api-gateway && npm run dev",
+    "build:all": "concurrently \"npm run build:auth\" \"npm run build:users\" \"npm run build:gateway\"",
+    "build:auth": "cd apps/auth-service && npm run build",
+    "build:users": "cd apps/user-service && npm run build",
+    "build:gateway": "cd api-gateway && npm run build"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "concurrently": "^9.2.1",
+    "express": "^5.1.0",
+    "ioredis": "^5.8.2",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^6.19.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5",
+    "@types/ioredis": "^4.28.10",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  }
+}

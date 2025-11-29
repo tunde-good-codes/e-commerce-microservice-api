@@ -1,0 +1,10 @@
+# Universal patterns that apply everywhere
+node_modules/
+*/node_modules/
+node_modules
+*/node_modules
+.env
+*.env
+.env.*.local
+dist/
+build/

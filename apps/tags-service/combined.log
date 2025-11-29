@@ -1,0 +1,63 @@
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:35:17.734Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:35:25.637Z"}
+{"level":"info","message":"Received POST request to /api/auth/register ","service":"identity-service","timestamp":"2025-10-05T11:39:43.343Z"}
+{"level":"info","message":"Request body,  [object Object] ","service":"identity-service","timestamp":"2025-10-05T11:39:43.344Z"}
+{"level":"info","message":"hitting registration endpoint for user","service":"identity-service","timestamp":"2025-10-05T11:39:43.381Z"}
+{"buffer":{"data":[104,226,88,255,238,106,161,103,108,24,254,136],"type":"Buffer"},"level":"info","message":"User registered successfully","service":"identity-service","timestamp":"2025-10-05T11:39:43.607Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:41:19.121Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:41:30.545Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:41:33.356Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:41:36.933Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:41:53.265Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:41:55.336Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:41:59.189Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:42:04.250Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:42:06.562Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:42:26.598Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:42:31.532Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:42:33.852Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:42:35.886Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:42:38.402Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:42:39.966Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:42:44.140Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:42:47.859Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:42:50.832Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:42:54.698Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:42:56.850Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:43:01.690Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:43:05.638Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:43:11.128Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:43:14.303Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:43:17.358Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:43:20.510Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:43:23.191Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:43:29.574Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:43:31.901Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:43:33.483Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:43:40.851Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:43:43.911Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:43:46.197Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:43:51.741Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:44:05.062Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:44:09.532Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:44:22.982Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:44:27.147Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:44:34.323Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:44:41.639Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:44:45.436Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:44:50.191Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:44:53.968Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:44:55.874Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:45:00.179Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:45:01.577Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:45:04.196Z"}
+{"level":"info","message":"user service running on port 3001","service":"identity-service","timestamp":"2025-10-05T11:45:09.353Z"}
+{"level":"info","message":"connected to database","service":"identity-service","timestamp":"2025-10-05T11:45:14.726Z"}
+{"level":"info","message":"Received GET request to /api/auth/users ","service":"identity-service","timestamp":"2025-10-05T11:45:58.154Z"}
+{"level":"info","message":"Request body,  undefined ","service":"identity-service","timestamp":"2025-10-05T11:45:58.154Z"}
+{"level":"info","message":"Received POST request to /api/auth/register ","service":"identity-service","timestamp":"2025-10-05T11:46:32.179Z"}
+{"level":"info","message":"Request body,  [object Object] ","service":"identity-service","timestamp":"2025-10-05T11:46:32.179Z"}
+{"level":"info","message":"hitting registration endpoint for user","service":"identity-service","timestamp":"2025-10-05T11:46:32.183Z"}
+{"buffer":{"data":[104,226,90,152,64,221,43,220,161,58,6,126],"type":"Buffer"},"level":"info","message":"User registered successfully","service":"identity-service","timestamp":"2025-10-05T11:46:32.424Z"}
+{"level":"info","message":"Received GET request to /api/auth/users ","service":"identity-service","timestamp":"2025-10-05T11:46:37.169Z"}
+{"level":"info","message":"Request body,  undefined ","service":"identity-service","timestamp":"2025-10-05T11:46:37.170Z"}
