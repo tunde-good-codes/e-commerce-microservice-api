@@ -8,7 +8,6 @@ import {
 import { sendEmail } from "./send-mail/index.js";
 import redis from "@shared/redis/index.js";
 
-import type { Redis } from "ioredis";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const validateRegistrationData = (
