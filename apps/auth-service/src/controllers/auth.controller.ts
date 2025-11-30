@@ -7,7 +7,7 @@ import {
   verifyOtp,
 } from "../utils/auth.helper";
 import bcrypt from "bcryptjs";
-import { NotFoundError, ValidationError } from "@shared/error-handler";
+import { InternalServerError, NotFoundError, ValidationError } from "@shared/error-handler";
 import prisma from "@shared/prisma";
 import jwt from "jsonwebtoken";
 import { generateTokens } from "@/utils/generateToken";
@@ -107,5 +107,6 @@ export const loginUser = async (
       accessToken,
       refreshToken,
     });
-  } catch (e) {}
+  } catch (e) {
+  }
 };
