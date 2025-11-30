@@ -7,7 +7,11 @@ import {
   verifyOtp,
 } from "../utils/auth.helper";
 import bcrypt from "bcryptjs";
-import { InternalServerError, NotFoundError, ValidationError } from "@shared/error-handler";
+import {
+  InternalServerError,
+  NotFoundError,
+  ValidationError,
+} from "@shared/error-handler";
 import prisma from "@shared/prisma";
 import jwt from "jsonwebtoken";
 import { generateTokens } from "@/utils/generateToken";
@@ -107,6 +111,125 @@ export const loginUser = async (
       accessToken,
       refreshToken,
     });
+  } catch (e) {}
+};
+
+export const userForgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      throw new NotFoundError("kindly enter email to continue");
+    }
+    const user = await prisma.users.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new NotFoundError("No user found with this email");
+    }
+
+    // check otp restrictions
+
+    await checkOtpRestrictions(email, next);
+    await trackOtpRequests(email, next);
+    // generate otp and send email
+    await sendOtp(email, user.name, "forgot-password-email");
+
+    res.status(200).json({
+      success: true,
+      message: "message sent successfully to: " + email,
+    });
   } catch (e) {
+    throw new InternalServerError("Bad request");
   }
+};
+// export const userForgotPassword = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+//   userType: "user" | "seller"
+// ) => {
+//   try {
+//     const { email } = req.body;
+//     if (!email) {
+//       throw new NotFoundError("kindly enter email to continue");
+//     }
+//     const user =
+//       userType === "user" &&
+//       (await prisma.users.findUnique({
+//         where: { email },
+//       }));
+
+//     if (!user) {
+//       throw new NotFoundError("No user found with this email");
+//     }
+
+//     // check otp restrictions
+
+//     await checkOtpRestrictions(email, next);
+//     await trackOtpRequests(email, next);
+//     // generate otp and send email
+//     await sendOtp(email, user.name, "forgot-password-email");
+
+//     res.status(200).json({
+//       success: true,
+//       message: "message sent successfully to: " + email,
+//     });
+//   } catch (e) {
+//     throw new InternalServerError("Bad request");
+//   }
+// };
+export const resetUserPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+      throw new NotFoundError("kindly enter email and password to continue");
+    }
+    const user = await prisma.users.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new NotFoundError("No user found with this email");
+    }
+
+    const isPasswordMatch = await bcrypt.compare(newPassword, user.password!);
+    if (!isPasswordMatch) {
+      throw new ValidationError(
+        "new password should not be the same as old password"
+      );
+    }
+
+    // hash new password
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.users.update({
+      where: { email },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "password updated successfully for this email: " + email,
+    });
+  } catch (e) {
+    throw new InternalServerError("Bad request");
+  }
+};
+export const verifyForgotPasswordOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  await verifyForgotPasswordOtp(req, res, next);
 };
