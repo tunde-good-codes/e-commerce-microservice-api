@@ -42,27 +42,21 @@ export const checkOtpRestrictions = async (
   try {
     //check if email is locked based on wrong otp input for more than 3 times... i.e you're are entering the wrong otp
     if (await redis.get(`otp_lock:${email}`)) {
-      return next(
-        new ValidationError(
-          "Account locked due to multiple failed attempts. try again after 30 minutes"
-        )
+      throw new ValidationError(
+        "Account locked due to multiple failed attempts. try again after 30 minutes"
       );
     }
 
     // if you're trying to spam the database with many otp requests... like 3 requests in 1 minute. your account will be locked for a hour
     if (await redis.get(`otp_spam_lock:${email}`)) {
-      return next(
-        new ValidationError(
-          "too many otp requests. please wait for an hour and try again"
-        )
+      throw new ValidationError(
+        "too many otp requests. please wait for an hour and try again"
       );
     }
 
     if (await redis.get(`otp_cool_down:${email}`)) {
-      return next(
-        new ValidationError(
-          "Please wait one minute before requesting a new email"
-        )
+      throw new ValidationError(
+        "Please wait one minute before requesting a new email"
       );
     }
   } catch (e) {
@@ -96,10 +90,8 @@ export const trackOtpRequests = async (email: string, next: NextFunction) => {
     if (otpRequests >= 2) {
       await redis.set(`otp_spam_lock:${email}`, "locked", "EX", 3600); // lock otp request for 1 hour if more than 3
 
-      return next(
-        new ValidationError(
-          "Too many otp requests. please wait 1 hour before requesting a new otp "
-        )
+      throw new ValidationError(
+        "Too many otp requests. please wait 1 hour before requesting a new otp "
       );
     }
 
@@ -141,6 +133,6 @@ export const verifyOtp = async (
     }
     await redis.del(`otp:${email}`, failedAttemptKey);
   } catch (e) {
-    throw new InternalServerError("Bad Request")
+    throw new InternalServerError("Bad Request");
   }
 };

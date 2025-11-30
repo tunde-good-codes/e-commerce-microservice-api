@@ -7,8 +7,11 @@ import {
   verifyOtp,
 } from "../utils/auth.helper";
 import bcrypt from "bcryptjs";
-import { ValidationError } from "@shared/error-handler";
+import { NotFoundError, ValidationError } from "@shared/error-handler";
 import prisma from "@shared/prisma";
+import jwt from "jsonwebtoken";
+import { generateTokens } from "@/utils/generateToken";
+import { setCookie } from "@/utils/cookies/setCookies";
 
 export const userRegistration = async (
   req: Request,
@@ -69,4 +72,40 @@ export const verifyUser = async (
   } catch (e) {
     return next(e);
   }
+};
+
+export const loginUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      throw new NotFoundError("enter email and password fields");
+    }
+
+    const user = await prisma.users.findUnique({ where: { email } });
+    if (!user) {
+      throw new NotFoundError(" user found with this email not found");
+    }
+    const isPasswordCorrect = await bcrypt.compare(password, user.password!);
+    if (!isPasswordCorrect) {
+      throw new NotFoundError("password mismatched!");
+    }
+
+    const { accessToken, refreshToken } = await generateTokens(user, "user");
+    // store refresh and access token in http only cookie
+
+    setCookie(res, "access_token", accessToken);
+    setCookie(res, "refresh_token", refreshToken);
+
+    res.status(200).json({
+      success: true,
+      message: "login successfully",
+      data: user,
+      accessToken,
+      refreshToken,
+    });
+  } catch (e) {}
 };
