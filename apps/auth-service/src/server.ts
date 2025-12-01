@@ -12,6 +12,8 @@ import swaggerUi from "swagger-ui-express";
 import router from "./routes/auth.router";
 import { errorMiddleware } from "@shared/error-handler/error-middleware";
 const swaggerDocument = require("./swagger-output.json");
+import cors from "cors"
+import { corsOptions } from "@shared/middleware";
 const app = express();
 
 app.use(express.json());
@@ -21,6 +23,7 @@ app.use(express.json());
 
 app.use(cookieParser());
 // Your routes here
+app.use(cors(corsOptions()));
 
 app.use("/api/auth", router);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));

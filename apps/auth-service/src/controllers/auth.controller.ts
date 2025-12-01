@@ -4,6 +4,7 @@ import {
   sendOtp,
   trackOtpRequests,
   validateRegistrationData,
+  verifyForgotPasswordOtp,
   verifyOtp,
 } from "../utils/auth.helper";
 import bcrypt from "bcryptjs";
@@ -13,7 +14,7 @@ import {
   ValidationError,
 } from "@shared/error-handler";
 import prisma from "@shared/prisma";
-import jwt from "jsonwebtoken";
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { generateTokens } from "@/utils/generateToken";
 import { setCookie } from "@/utils/cookies/setCookies";
 
@@ -41,8 +42,8 @@ export const userRegistration = async (
     res.status(200).json({
       message: "otp sent to email. please verify your account",
     });
-  } catch (e) {
-    console.log(e);
+  } catch (e: any) {
+    throw new InternalServerError("Bad request: " + e.message);
   }
 };
 
@@ -73,8 +74,8 @@ export const verifyUser = async (
       message: "user registered successfully",
       success: true,
     });
-  } catch (e) {
-    return next(e);
+  } catch (e: any) {
+    throw new InternalServerError("Bad request: " + e.message);
   }
 };
 
@@ -91,7 +92,7 @@ export const loginUser = async (
 
     const user = await prisma.users.findUnique({ where: { email } });
     if (!user) {
-      throw new NotFoundError(" user found with this email not found");
+      throw new NotFoundError("no  user found with this email not found");
     }
     const isPasswordCorrect = await bcrypt.compare(password, user.password!);
     if (!isPasswordCorrect) {
@@ -107,11 +108,95 @@ export const loginUser = async (
     res.status(200).json({
       success: true,
       message: "login successfully",
-      data: user,
-      accessToken,
-      refreshToken,
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
     });
-  } catch (e) {}
+  } catch (e: any) {
+    throw new InternalServerError("Bad request: " + e.message);
+  }
+};
+
+export const getUserInfo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user;
+  try {
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error: any) {
+    throw new InternalServerError("Bad request: " + error.message);
+
+    next(error);
+  }
+};
+
+export const refreshTokenHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized! No refresh token provided",
+      });
+    }
+
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET as string
+    ) as { id: string; role: string };
+
+    if (!decoded || !decoded.id || !decoded.role) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: Invalid refresh token",
+      });
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { id: decoded.id },
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const newAccessToken = jwt.sign(
+      { id: decoded.id, role: decoded.role },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "15m" }
+    );
+
+    setCookie(res, "access_token", newAccessToken);
+
+    return res.status(201).json({
+      success: true,
+    });
+  } catch (error: any) {
+    // Add type annotation
+    if (error instanceof jwt.JsonWebTokenError) {
+      return next(new JsonWebTokenError("Invalid or expired refresh token"));
+    }
+    if (error instanceof jwt.TokenExpiredError) {
+      return next(new JsonWebTokenError("Refresh token expired"));
+    }
+    // Default error handler
+    return next(error);
+  }
 };
 
 export const userForgotPassword = async (
@@ -143,8 +228,8 @@ export const userForgotPassword = async (
       success: true,
       message: "message sent successfully to: " + email,
     });
-  } catch (e) {
-    throw new InternalServerError("Bad request");
+  } catch (e: any) {
+    throw new InternalServerError("Bad request: " + e.message);
   }
 };
 // export const userForgotPassword = async (
@@ -226,7 +311,7 @@ export const resetUserPassword = async (
     throw new InternalServerError("Bad request");
   }
 };
-export const verifyForgotPasswordOtp = async (
+export const verifyForgotPasswordOtpHandler = async (
   req: Request,
   res: Response,
   next: NextFunction

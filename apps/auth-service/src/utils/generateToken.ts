@@ -1,33 +1,28 @@
 import jwt from "jsonwebtoken";
-import crypto from "crypto";
-import RefreshToken from "../models/RefreshToken";
-export const generateTokens = async (user: any, role:string) => {
+
+
+
+
+// In your token generation code (probably in auth service)
+export const generateTokens = async (user: any, role: string) => {
   const accessToken = jwt.sign(
-    {
-      userId: user._id,
-      role
+    { 
+      id: user.id, // <-- Make sure this is included
+      email: user.email,
+      role: role 
     },
-    process.env.JWT_SECRET as string,
-    { expiresIn: "15m" }
+    process.env.JWT_SECRET!,
+    { expiresIn: '15m' } // or your preferred expiry
   );
 
-//   const refreshToken = crypto.randomBytes(40).toString("hex");
-//   const expiresAt = new Date();
-//   expiresAt.setDate(expiresAt.getDate() + 7); // expires in 7days
-
-//   await RefreshToken.create({
-//     refreshToken,
-//     user: user._id,
-//     expiresAt,
-//   });
-
-const refreshToken = jwt.sign(
-    {
-      userId: user._id,
-      role
+  const refreshToken = jwt.sign(
+    { 
+      id: user.id, // <-- Include here too
+      email: user.email,
+      role: role 
     },
-    process.env.JWT_REFRESH_SECRET as string,
-    { expiresIn: "7d" }
+    process.env.JWT_REFRESH_SECRET!,
+    { expiresIn: '7d' }
   );
 
   return { accessToken, refreshToken };

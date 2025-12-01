@@ -153,7 +153,7 @@ export const verifyForgotPasswordOtp = async (
       success: true,
       message: "otp verified! reset password now"
     });
-  } catch (e) {
-    throw new InternalServerError("Bad request");
+  } catch (e:any) {
+    throw new InternalServerError("Bad request: " + e.message);
   }
 };
