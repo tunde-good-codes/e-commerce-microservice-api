@@ -12,16 +12,66 @@ model images {
     file_id String
     url     String
     userId  String? @unique @db.ObjectId
+    shopId  String? @unique @db.ObjectId
     users   users?  @relation(fields: [userId], references: [id])
+    shops   shops?  @relation(fields: [shopId], references: [id])
 }
 
 model users {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
-    name      String
-    email     String   @unique
-    password  String?
-    avatar    images?
-    following String[]
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id         String      @id @default(auto()) @map("_id") @db.ObjectId
+    name       String
+    email      String      @unique
+    password   String?
+    avatar     images?
+    following  String[]
+    createdAt  DateTime    @default(now())
+    updatedAt  DateTime    @updatedAt
+    shopReview shopReview?
+}
+
+model shops {
+    id           String  @id @default(auto()) @map("_id") @db.ObjectId
+    name         String
+    bio          String?
+    avatar       images?
+    category     String
+    cover_banner String?
+    address      String
+    opening_hour String?
+    website      String?
+    social_Link  Json[]
+    rating       Float   @default(0)
+    sellerId     String? @unique @db.ObjectId
+
+sellers   sellers?     @relation(fields: [sellerId], references: [id])
+    reviews   shopReview[]
+    createdAt DateTime     @default(now())
+    updatedAt DateTime     @updatedAt
+}
+
+model shopReview {
+    id String @id @default(auto()) @map("_id") @db.ObjectId
+
+    userId  String? @unique @db.ObjectId
+    users   users?  @relation(fields: [userId], references: [id])
+    rating  Float
+    reviews String?
+
+    shopsId String? @unique @db.ObjectId
+    shops   shops?  @relation(fields: [shopsId], references: [id])
+}
+
+model sellers {
+    id           String   @id @default(auto()) @map("_id") @db.ObjectId
+    name         String
+    email        String   @unique
+    phone_number String
+    country      String
+    stripeId     String?
+    password     String?
+    shop         shops?
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+    shopId       String?  @db.ObjectId
+    shopsId      String?  @db.ObjectId
 }
