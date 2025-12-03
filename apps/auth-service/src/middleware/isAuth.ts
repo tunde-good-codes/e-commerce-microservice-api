@@ -6,75 +6,44 @@ import prisma from "@shared/prisma/index.js";
 export interface AuthenticatedRequest extends Request {
   user?: IUser | null;
 }
-
+// In your isAuth middleware
 export const isAuthenticated = async (
-  req: Request, // Use AuthenticatedRequest type
+  req: Request,
   res: Response,
   next: NextFunction
-): Promise<Response | void> => {
+): Promise<void> => {
+  // ✅ Add return type
   try {
-    // Get token from multiple sources
-    let token = req.cookies?.access_token;
-
-    if (!token && req.headers.authorization) {
-      token = req.headers.authorization.replace("Bearer ", "");
-    }
+    const token =
+      req.cookies.access_token || req.headers.authorization?.split(" ")[1];
 
     if (!token) {
-      // IMPORTANT: Return after sending response
-      return res.status(401).json({
-        message: "Unauthorized! Token Missing",
+      res.status(401).json({
+        success: false,
+        message: "No token provided",
       });
+      return; // ✅ Add explicit return
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      id: string;
-      role: "user" | "seller";
-      email?: string;
-    };
-
-    if (!decoded?.id) {
-      // Check if ID exists
-      return res.status(401).json({
-        message: "Unauthorized! Invalid Token",
-      });
-    }
-
-    const account = await prisma.users.findUnique({
-      where: {
-        id: decoded.id, // This should now work
-      },
-    });
-
-    if (!account) {
-      return res.status(401).json({
-        message: "Unauthorized! User not found",
-      });
-    }
-
-    // Remove password from user object before attaching to request
-    const { password, ...userWithoutPassword } = account!;
-    req.user = userWithoutPassword as any;
-
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+    req.user = decoded;
     next();
-  } catch (error: any) {
-    console.log("JWT verification error: ", error);
-
-    // Check for specific JWT errors
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({
+    return; // ✅ Add explicit return after next()
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      res.status(401).json({
+        success: false,
         message: "Token expired",
       });
+      return; // ✅ Add explicit return
     }
 
-    if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({
-        message: "Invalid token",
-      });
-    }
-
-    return res.status(500).json({
-      message: "Authentication error",
+    // Only log unexpected errors
+    console.error("JWT verification error:", error);
+    res.status(401).json({
+      success: false,
+      message: "Invalid token",
     });
+    return; // ✅ Add explicit return
   }
 };
