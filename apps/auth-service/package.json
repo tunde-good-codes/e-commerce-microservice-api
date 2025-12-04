@@ -39,6 +39,7 @@
     "rate-limit-redis": "^4.2.2",
     "rate-limiter-flexible": "^7.3.1",
     "redis": "^5.10.0",
+    "stripe": "^20.0.0",
     "swagger-autogen": "^2.23.7",
     "swagger-ui-express": "^5.0.1",
     "winston": "^3.17.0"

@@ -17,7 +17,12 @@ import prisma from "@shared/prisma";
 import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { generateTokens } from "@/utils/generateToken";
 import { setCookie } from "@/utils/cookies/setCookies";
+import Stripe from "stripe";
+import { date } from "joi";
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-11-17.clover",
+});
 export const userRegistration = async (
   req: Request,
   res: Response,
@@ -402,10 +407,10 @@ export const createShop = async (
   next: NextFunction
 ) => {
   try {
-    const { name, bio, address, category, website, opening_hours, sellerId } =
+    const { name, bio, address, category, website, opening_hour, sellerId } =
       req.body;
 
-    if (!name || !address || !category || !opening_hours || !bio || !sellerId) {
+    if (!name || !address || !category || !opening_hour || !bio || !sellerId) {
       return next(new ValidationError("All fields are required"));
     }
 
@@ -414,7 +419,7 @@ export const createShop = async (
       bio,
       address,
       category,
-      opening_hours,
+      opening_hour,
       sellerId,
     };
 
@@ -433,5 +438,139 @@ export const createShop = async (
     });
   } catch (e: any) {
     throw new InternalServerError("Bad request: " + e.message);
+  }
+};
+
+export const createStripeConnectLink = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { sellerId } = req.body;
+
+    // Validate sellerId
+    if (!sellerId) {
+      return next(new ValidationError("sellerId is required"));
+    }
+
+    // Check if seller exists
+    const seller = await prisma.sellers.findUnique({
+      where: { id: sellerId },
+    });
+
+    if (!seller) {
+      return next(new ValidationError("Seller not found"));
+    }
+
+    // Create Stripe Express account
+    const account = await stripe.accounts.create({
+      type: "express",
+      email: seller.email,
+      country: "NG", // Nigeria
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
+      business_type: "individual", // Add business type
+      metadata: {
+        sellerId: seller.id,
+      },
+    });
+
+    // Update seller with Stripe account ID
+    await prisma.sellers.update({
+      where: { id: sellerId },
+      data: { stripeId: account.id },
+    });
+
+    // Create account link for onboarding
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: `http://localhost:3000/success`,
+      return_url: `http://localhost:3000/success`,
+      type: "account_onboarding",
+
+      
+    });
+
+    // Return the onboarding URL
+    res.status(200).json({
+      success: true,
+      url: accountLink.url,
+      stripeAccountId: account.id,
+    });
+  } catch (error: any) {
+    console.error("Stripe Connect Error:", error);
+
+    // Handle Stripe-specific errors
+    if (error.type === "StripeInvalidRequestError") {
+      return next(
+        new ValidationError("Invalid Stripe request: " + error.message)
+      );
+    }
+
+    return next(new Error("Failed to create Stripe Connect link"));
+  }
+};
+
+export const loginSeller = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      throw new NotFoundError("enter email and password fields");
+    }
+
+    const seller = await prisma.sellers.findUnique({ where: { email } });
+    if (!seller) {
+      throw new NotFoundError("no  seller found with this email not found");
+    }
+    const isPasswordCorrect = await bcrypt.compare(password, seller.password!);
+    if (!isPasswordCorrect) {
+      throw new NotFoundError("password mismatched!");
+    }
+
+    const { accessToken, refreshToken } = await generateTokens(
+      seller,
+      "seller"
+    );
+    // store refresh and access token in http only cookie
+
+    setCookie(res, "seller_access_token", accessToken);
+    setCookie(res, "seller_refresh_token", refreshToken);
+
+    res.status(200).json({
+      success: true,
+      message: "login successfully",
+      data: {
+        id: seller.id,
+        name: seller.name,
+        email: seller.email,
+      },
+    });
+  } catch (e: any) {
+    throw new InternalServerError("Bad request: " + e.message);
+  }
+};
+
+export const getSellerInfo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const seller = req.user;
+  try {
+    res.status(200).json({
+      success: true,
+      seller,
+    });
+  } catch (error: any) {
+    throw new InternalServerError("Bad request: " + error.message);
+
+    next(error);
   }
 };
