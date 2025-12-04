@@ -467,7 +467,7 @@ export const createStripeConnectLink = async (
     const account = await stripe.accounts.create({
       type: "express",
       email: seller.email,
-      country: "NG", // Nigeria
+      country: "UK", // Nigeria
       capabilities: {
         card_payments: { requested: true },
         transfers: { requested: true },
@@ -562,7 +562,7 @@ export const getSellerInfo = async (
   res: Response,
   next: NextFunction
 ) => {
-  const seller = req.user;
+  const seller = req.seller;
   try {
     res.status(200).json({
       success: true,
