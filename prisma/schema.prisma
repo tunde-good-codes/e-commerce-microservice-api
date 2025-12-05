@@ -43,7 +43,7 @@ model shops {
     rating       Float   @default(0)
     sellerId     String? @unique @db.ObjectId
 
-sellers   sellers?     @relation(fields: [sellerId], references: [id])
+    sellers   sellers?     @relation(fields: [sellerId], references: [id])
     reviews   shopReview[]
     createdAt DateTime     @default(now())
     updatedAt DateTime     @updatedAt

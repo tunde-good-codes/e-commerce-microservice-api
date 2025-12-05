@@ -41,8 +41,8 @@ export const userRegistration = async (
       throw next(new ValidationError("user already exists with this email"));
     }
 
-    await checkOtpRestrictions(email, next);
-    await trackOtpRequests(email, next);
+    await checkOtpRestrictions(email);
+    await trackOtpRequests(email);
     await sendOtp(email, name, "user-activation-email");
     res.status(200).json({
       message: "otp sent to email. please verify your account",
@@ -69,7 +69,7 @@ export const verifyUser = async (
     if (existingUser) {
       throw next(new ValidationError("user already exists with this email"));
     }
-    await verifyOtp(email, otp, next);
+    await verifyOtp(email, otp);
 
     const hashPassword = await bcrypt.hash(password, 10);
     await prisma.users.create({
@@ -233,8 +233,8 @@ export const userForgotPassword = async (
 
     // check otp restrictions
 
-    await checkOtpRestrictions(email, next);
-    await trackOtpRequests(email, next);
+    await checkOtpRestrictions(email);
+    await trackOtpRequests(email);
     // generate otp and send email
     await sendOtp(
       email,
@@ -357,14 +357,14 @@ export const registerSeller = async (
       throw new NotFoundError("A seller already  found with this email");
     }
 
-    await checkOtpRestrictions(email, next);
-    await trackOtpRequests(email, next);
+    await checkOtpRestrictions(email);
+    await trackOtpRequests(email);
     await sendOtp(email, name, "seller-activation-email");
     res.status(200).json({
       message: "otp sent to email. please verify your account",
     });
   } catch (e: any) {
-    throw new InternalServerError("Bad request: " + e.message);
+    throw new InternalServerError("Bad request internal error: " + e + " bad");
   }
 };
 
@@ -386,15 +386,16 @@ export const verifySeller = async (
     if (existingSeller) {
       throw next(new ValidationError("seller already exists with this email"));
     }
-    await verifyOtp(email, otp, next);
+    await verifyOtp(email, otp);
 
     const hashPassword = await bcrypt.hash(password, 10);
-    await prisma.sellers.create({
+   const seller  =  await prisma.sellers.create({
       data: { name, email, password: hashPassword, phone_number, country },
     });
     res.status(201).json({
       message: "seller registered successfully",
       success: true,
+      sellerId:seller.id
     });
   } catch (e: any) {
     throw new InternalServerError("Bad request: " + e.message);
@@ -410,10 +411,30 @@ export const createShop = async (
     const { name, bio, address, category, website, opening_hour, sellerId } =
       req.body;
 
+    // Validate required fields
     if (!name || !address || !category || !opening_hour || !bio || !sellerId) {
       return next(new ValidationError("All fields are required"));
     }
 
+    // ✅ Verify seller exists
+    const seller = await prisma.sellers.findUnique({
+      where: { id: sellerId },
+    });
+
+    if (!seller) {
+      return next(new ValidationError("Seller not found"));
+    }
+
+    // ✅ Check if seller already has a shop
+    const existingShop = await prisma.shops.findUnique({
+      where: { sellerId },
+    });
+
+    if (existingShop) {
+      return next(new ValidationError("Shop already exists for this seller"));
+    }
+
+    // Prepare shop data
     const shopData: any = {
       name,
       bio,
@@ -423,23 +444,97 @@ export const createShop = async (
       sellerId,
     };
 
-    if (website && website.trim() === "") {
-      shopData.website = website;
+    // Only add website if it has a value
+    if (website && website.trim() !== "") {
+      shopData.website = website.trim();
     }
 
+    // Create the shop
     const shop = await prisma.shops.create({
       data: shopData,
     });
 
     res.status(201).json({
-      message: "shop registered successfully",
       success: true,
+      message: "Shop created successfully",
       shop,
     });
-  } catch (e: any) {
-    throw new InternalServerError("Bad request: " + e.message);
+  } catch (error: any) {
+    console.error("Create shop error:", error);
+    next(error);
   }
 };
+// export const createStripeConnectLink = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//     const { sellerId } = req.body;
+
+//     // Validate sellerId
+//     if (!sellerId) {
+//       return next(new ValidationError("sellerId is required"));
+//     }
+
+//     // Check if seller exists
+//     const seller = await prisma.sellers.findUnique({
+//       where: { id: sellerId },
+//     });
+
+//     if (!seller) {
+//       return next(new ValidationError("Seller not found"));
+//     }
+
+//     // Create Stripe Express account
+//     const account = await stripe.accounts.create({
+//       type: "express",
+//       email: seller.email,
+//       country: "UK", // Nigeria
+//       capabilities: {
+//         card_payments: { requested: true },
+//         transfers: { requested: true },
+//       },
+//       business_type: "individual", // Add business type
+//       metadata: {
+//         sellerId: seller.id,
+//       },
+//     });
+
+//     // Update seller with Stripe account ID
+//     await prisma.sellers.update({
+//       where: { id: sellerId },
+//       data: { stripeId: account.id },
+//     });
+
+//     // Create account link for onboarding
+//     const accountLink = await stripe.accountLinks.create({
+//       account: account.id,
+//       refresh_url: `http://localhost:3000/success`,
+//       return_url: `http://localhost:3000/success`,
+//       type: "account_onboarding",
+
+//     });
+
+//     // Return the onboarding URL
+//     res.status(200).json({
+//       success: true,
+//       url: accountLink.url,
+//       stripeAccountId: account.id,
+//     });
+//   } catch (error: any) {
+//     console.error("Stripe Connect Error:", error);
+
+//     // Handle Stripe-specific errors
+//     if (error.type === "StripeInvalidRequestError") {
+//       return next(
+//         new ValidationError("Invalid Stripe request: " + error.message)
+//       );
+//     }
+
+//     return next(new Error("Failed to create Stripe Connect link"));
+//   }
+// };
 
 export const createStripeConnectLink = async (
   req: Request,
@@ -447,11 +542,11 @@ export const createStripeConnectLink = async (
   next: NextFunction
 ) => {
   try {
-    const { sellerId } = req.body;
+    // ✅ Get sellerId from authenticated request instead of body
+    const sellerId = req.seller?.id;
 
-    // Validate sellerId
     if (!sellerId) {
-      return next(new ValidationError("sellerId is required"));
+      return next(new ValidationError("Seller authentication required"));
     }
 
     // Check if seller exists
@@ -463,16 +558,25 @@ export const createStripeConnectLink = async (
       return next(new ValidationError("Seller not found"));
     }
 
+    // ✅ Check if seller already has Stripe account
+    if (seller.stripeId) {
+      return res.status(200).json({
+        success: true,
+        message: "Stripe account already connected",
+        stripeAccountId: seller.stripeId,
+      });
+    }
+
     // Create Stripe Express account
     const account = await stripe.accounts.create({
       type: "express",
       email: seller.email,
-      country: "UK", // Nigeria
+      country: "GB", // UK country code
       capabilities: {
         card_payments: { requested: true },
         transfers: { requested: true },
       },
-      business_type: "individual", // Add business type
+      business_type: "individual",
       metadata: {
         sellerId: seller.id,
       },
@@ -487,14 +591,11 @@ export const createStripeConnectLink = async (
     // Create account link for onboarding
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `http://localhost:3000/success`,
-      return_url: `http://localhost:3000/success`,
+      refresh_url: `${process.env.FRONTEND_URL}/seller/onboarding/refresh`,
+      return_url: `${process.env.FRONTEND_URL}/seller/onboarding/success`,
       type: "account_onboarding",
-
-      
     });
 
-    // Return the onboarding URL
     res.status(200).json({
       success: true,
       url: accountLink.url,
@@ -503,7 +604,6 @@ export const createStripeConnectLink = async (
   } catch (error: any) {
     console.error("Stripe Connect Error:", error);
 
-    // Handle Stripe-specific errors
     if (error.type === "StripeInvalidRequestError") {
       return next(
         new ValidationError("Invalid Stripe request: " + error.message)
@@ -513,7 +613,6 @@ export const createStripeConnectLink = async (
     return next(new Error("Failed to create Stripe Connect link"));
   }
 };
-
 export const loginSeller = async (
   req: Request,
   res: Response,

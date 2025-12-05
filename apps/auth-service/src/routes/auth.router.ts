@@ -37,13 +37,17 @@ router.get("/auth-user", isAuthenticated, isUser, getUserInfo);
 router.post("/reset-password", resetUserPassword);
 router.post("/verify-forgot-password-otp", verifyForgotPasswordOtpHandler);
 
-
 router.post("/seller-registration", registerSeller);
 router.post("/verify-seller", verifySeller);
 router.post("/create-shop", createShop);
-router.post("/create-stripe-link", createStripeConnectLink);
+// In your routes file
+router.post(
+  "/create-stripe-link",
+  isAuthenticated, // ✅ Add authentication middleware
+  isSeller, // ✅ Ensure user is a seller
+  createStripeConnectLink
+);
 router.post("/login-seller", loginSeller);
-router.get("/auth-seller",isAuthenticated, isSeller, getSellerInfo);
-
+router.get("/auth-seller", isAuthenticated, isSeller, getSellerInfo);
 
 export default router;
