@@ -43,8 +43,6 @@ router.post("/create-shop", createShop);
 // In your routes file
 router.post(
   "/create-stripe-link",
-  isAuthenticated, // ✅ Add authentication middleware
-  isSeller, // ✅ Ensure user is a seller
   createStripeConnectLink
 );
 router.post("/login-seller", loginSeller);
