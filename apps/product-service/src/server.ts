@@ -7,9 +7,9 @@ import express from "express";
 
 import cookieParser from "cookie-parser";
 
-import swaggerUi from "swagger-ui-express";
+//import swaggerUi from "swagger-ui-express";
 import router from "./routes/product.route.js";
-const swaggerDocument = require("./swagger-output.json");
+//const swaggerDocument = require("./swagger-output.json");
 import cors from "cors";
 import { errorMiddleware } from "@shared/error-handler/error-middleware";
 const app = express();
@@ -30,12 +30,12 @@ app.use(
 );
 
 app.use("/api/product", router);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.get("/docs-json", (req, res) => {
-  res.json({
-    swaggerDocument,
-  });
-});
+//app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// app.get("/docs-json", (req, res) => {
+//   res.json({
+//     swaggerDocument,
+//   });
+// });
 
 app.get("/api", (req, res) => {
   res.send({ message: "Welcome to product-service!" });
@@ -65,7 +65,7 @@ app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 8082;
 app.listen(PORT, () => {
-  console.log(`Auth Service listening at http://localhost:${PORT}/api/auth`);
+  console.log(`Product Service listening at http://localhost:${PORT}/api/product`);
   console.log(`Swagger Service listening at http://localhost:${PORT}/docs`);
 });
 // server()

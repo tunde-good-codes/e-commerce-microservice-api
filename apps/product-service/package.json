@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon  src/server.js",
-    "start": "node  src/server.js"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +30,8 @@
     "nodemon": "^3.1.10",
     "rate-limit-redis": "^4.2.2",
     "rate-limiter-flexible": "^7.3.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {

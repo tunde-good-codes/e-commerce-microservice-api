@@ -5,12 +5,14 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:all": "concurrently \"npm run dev:auth\"  \"npm run dev:gateway\"",
+    "dev:all": "concurrently \"npm run dev:auth\" \"npm run dev:product\"  \"npm run dev:gateway\"",
     "dev:auth": "cd apps/auth-service && npm run dev",
+    "dev:product": "cd apps/product-service && npm run dev",
     "dev:users": "cd apps/user-service && npm run dev",
     "dev:gateway": "cd api-gateway && npm run dev",
     "build:all": "concurrently \"npm run build:auth\" \"npm run build:users\" \"npm run build:gateway\"",
     "build:auth": "cd apps/auth-service && npm run build",
+    "build:product": "cd apps/product-service && npm run build",
     "build:users": "cd apps/user-service && npm run build",
     "build:gateway": "cd api-gateway && npm run build"
   },
