@@ -37,7 +37,7 @@ app.use("/api/product", router);
 //   });
 // });
 
-app.get("/api", (req, res) => {
+app.get("/api/product", (req, res) => {
   res.send({ message: "Welcome to product-service!" });
 });
 app.get("/", (req, res) => {

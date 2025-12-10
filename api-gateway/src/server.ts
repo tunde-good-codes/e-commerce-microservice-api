@@ -89,14 +89,14 @@ app.get("/", (req, res) => {
 // );
 
 app.use(
-  "/auth",
+  "/api/auth",
   proxy(`http://localhost:${process.env.AUTH_SERVICE_PORT}`, {
     proxyReqPathResolver: (req) => `/api/auth${req.url}`,
   })
 );
 
 app.use(
-  "/product",
+  "/api/product",
   proxy(`http://localhost:${process.env.PRODUCT_SERVICE_PORT}`, {
     proxyReqPathResolver: (req) => `/api/product${req.url}`,
   })
