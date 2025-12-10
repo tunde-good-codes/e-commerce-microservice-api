@@ -12,7 +12,7 @@ import proxy from "express-http-proxy";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-
+import initializedConfig from "./libs/initializeSiteConfig";
 
 const app = express();
 
@@ -87,7 +87,21 @@ app.get("/", (req, res) => {
 //     },
 //   })
 // );
-app.use("/auth", proxy("http://localhost:8081"));
+
+app.use(
+  "/auth",
+  proxy(`http://localhost:${process.env.AUTH_SERVICE_PORT}`, {
+    proxyReqPathResolver: (req) => `/api/auth${req.url}`,
+  })
+);
+
+app.use(
+  "/product",
+  proxy(`http://localhost:${process.env.PRODUCT_SERVICE_PORT}`, {
+    proxyReqPathResolver: (req) => `/api/product${req.url}`,
+  })
+);
+
 
 app.use((req, res) => {
   res.status(404).json({
@@ -114,8 +128,15 @@ app.use(
 
 const port = process.env.API_GATEWAY_PORT || 8080;
 const server = app.listen(port, () => {
+  
   console.log(`Listening at http://localhost:${port}`); // Fixed syntax
   console.log(`Gateway health check: http://localhost:${port}/gateway-health`);
+  try {
+    initializedConfig();
+    console.log("site config initialized");
+  } catch (e) {
+    console.log("error initializing config");
+  }
 });
 
 server.on("error", console.error);

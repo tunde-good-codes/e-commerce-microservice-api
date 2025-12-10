@@ -148,7 +148,10 @@ export const refreshTokenHandler = async (
   next: NextFunction
 ) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    // ✅ Check for both user and seller refresh tokens
+    const refreshToken = 
+      req.cookies.refresh_token || 
+      req.cookies.seller_refresh_token;
 
     if (!refreshToken) {
       return res.status(401).json({
@@ -160,7 +163,7 @@ export const refreshTokenHandler = async (
     const decoded = jwt.verify(
       refreshToken,
       process.env.JWT_REFRESH_SECRET as string
-    ) as { id: string; role: string };
+    ) as { id: string; role: "user" | "seller" };
 
     if (!decoded || !decoded.id || !decoded.role) {
       return res.status(403).json({
@@ -169,39 +172,61 @@ export const refreshTokenHandler = async (
       });
     }
 
-    const user = await prisma.users.findUnique({
-      where: { id: decoded.id },
-    });
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found",
+    // ✅ Look up the correct account type based on role
+    let account;
+    if (decoded.role === "user") {
+      account = await prisma.users.findUnique({
+        where: { id: decoded.id },
+      });
+    } else if (decoded.role === "seller") {
+      account = await prisma.sellers.findUnique({
+        where: { id: decoded.id },
       });
     }
 
+    if (!account) {
+      return res.status(401).json({
+        success: false,
+        message: `${decoded.role} not found`,
+      });
+    }
+
+    // Generate new access token
     const newAccessToken = jwt.sign(
       { id: decoded.id, role: decoded.role },
       process.env.JWT_SECRET as string,
       { expiresIn: "15m" }
     );
 
-    // Set cookie (for SSR/future use)
-    setCookie(res, "access_token", newAccessToken);
+    // ✅ Set the correct cookie based on role
+    if (decoded.role === "user") {
+      setCookie(res, "access_token", newAccessToken);
+    } else {
+      setCookie(res, "seller_access_token", newAccessToken);
+    }
 
-    // ✅ RETURN TOKEN IN RESPONSE
     return res.status(200).json({
       success: true,
-      accessToken: newAccessToken, // Add this!
+      accessToken: newAccessToken,
+      role: decoded.role, // ✅ Return role so frontend knows which token to store
     });
   } catch (error: any) {
     if (error instanceof jwt.JsonWebTokenError) {
-      return next(new JsonWebTokenError("Invalid or expired refresh token"));
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired refresh token",
+      });
     }
     if (error instanceof jwt.TokenExpiredError) {
-      return next(new JsonWebTokenError("Refresh token expired"));
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token expired",
+      });
     }
-    return next(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
 
@@ -575,7 +600,7 @@ export const createStripeConnectLink = async (
 
       return res.status(200).json({
         success: true,
-        url: `${process.env.FRONTEND_URL}/seller/dashboard?stripe_connected=true`,
+        url: `${process.env.FRONTEND_URL}/success`,
         stripeAccountId: mockAccountId,
         message: "Mock Stripe account created for development",
       });
@@ -604,8 +629,8 @@ export const createStripeConnectLink = async (
     // ✅ FIX: Missing // in refresh_url
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `http://localhost:3000/seller/signup?step=3`, // Fixed typo
-      return_url: `http://localhost:3000/seller/dashboard`,
+      refresh_url: `http://localhost:3000/success`, // Fixed typo
+      return_url: `http://localhost:3000/success`,
       type: "account_onboarding",
     });
 
@@ -641,8 +666,9 @@ export const loginSeller = async (
 
     const seller = await prisma.sellers.findUnique({ where: { email } });
     if (!seller) {
-      throw new NotFoundError("no  seller found with this email not found");
+      throw new NotFoundError("no seller found with this email not found");
     }
+    
     const isPasswordCorrect = await bcrypt.compare(password, seller.password!);
     if (!isPasswordCorrect) {
       throw new NotFoundError("password mismatched!");
@@ -652,14 +678,15 @@ export const loginSeller = async (
       seller,
       "seller"
     );
-    // store refresh and access token in http only cookie
 
     setCookie(res, "seller_access_token", accessToken);
     setCookie(res, "seller_refresh_token", refreshToken);
 
+    // ✅ ADD: Return accessToken in response for localStorage
     res.status(200).json({
       success: true,
       message: "login successfully",
+      accessToken, // ✅ Add this
       data: {
         id: seller.id,
         name: seller.name,
@@ -667,10 +694,9 @@ export const loginSeller = async (
       },
     });
   } catch (e: any) {
-    throw new InternalServerError("Bad request: " + e.message);
+    next(e); // ✅ Use next() instead of throw
   }
 };
-
 export const getSellerInfo = async (
   req: Request,
   res: Response,
