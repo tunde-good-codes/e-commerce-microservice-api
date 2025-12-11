@@ -7,7 +7,7 @@ const router:Router = express.Router();
 router.get("/get-categories", getCategories)
 router.post("/create-discount_codes", isAuthenticated, createDiscountCodes)
 router.get("/get-discount-codes", isAuthenticated,getDiscountCodes)
-router.delete("/delete-discount-codes", isAuthenticated,deleteDiscountCodes)
+router.delete("/delete-discount-codes/:id", isAuthenticated,deleteDiscountCodes)
 
 
 
