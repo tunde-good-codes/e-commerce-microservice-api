@@ -1,3 +1,4 @@
+import { imageKit } from "@/utils/imageKit";
 import { ValidationError } from "@shared/error-handler";
 import prisma from "@shared/prisma";
 import { NextFunction, Request, Response } from "express";
@@ -131,5 +132,27 @@ export const deleteDiscountCodes = async (
       success: false,
       message: "internal server error: " + e.message,
     });
+  }
+};
+
+export const uploadProductImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try{
+    const { fileName } = req.body;
+  const response = await imageKit.upload({
+    file: fileName,
+    fileName: `product-${Date.now()}.jpg`,
+    folder: "/product",
+  });
+
+  res.status(201).json({
+    file_url: response.url,
+    fileName:response.fileId
+  });
+  }catch(e){
+    next(e)
   }
 };
