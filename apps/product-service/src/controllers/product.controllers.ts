@@ -140,19 +140,39 @@ export const uploadProductImage = async (
   res: Response,
   next: NextFunction
 ) => {
-  try{
-    const { fileName } = req.body;
-  const response = await imageKit.upload({
-    file: fileName,
-    fileName: `product-${Date.now()}.jpg`,
-    folder: "/product",
-  });
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
 
-  res.status(201).json({
-    file_url: response.url,
-    fileName:response.fileId
-  });
-  }catch(e){
-    next(e)
+    const response = await imageKit.upload({
+      file: req.file.buffer, // ✅ correct
+      fileName: `product-${Date.now()}.jpg`,
+      folder: "/product",
+    });
+
+    res.status(201).json({
+      file_url: response.url,
+      fileId: response.fileId,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const deleteProductImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { fileId } = req.body;
+    const response = await imageKit.deleteFile(fileId);
+
+    res.status(201).json({
+      success: true,
+      response,
+    });
+  } catch (error) {
+    next(error);
   }
 };
