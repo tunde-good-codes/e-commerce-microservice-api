@@ -109,7 +109,7 @@ model products {
     short_description      String
     warranty               String?
     customer_specification Json?
-    tags                   String?
+    tags                   String[]
     slug                   String    @unique
     brand                  String?
     category               String

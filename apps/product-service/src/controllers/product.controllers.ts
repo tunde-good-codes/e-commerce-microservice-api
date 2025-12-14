@@ -247,7 +247,9 @@ export const createProduct = async (
         slug,
         shopId: req.seller.id,
 
-        tags: Array.isArray(tags) ? tags.join(",") : tags,
+tags: Array.isArray(tags)
+  ? tags
+  : tags.split(",").map((t: string) => t.trim()),
         brand,
         video_url,
         category,
@@ -263,13 +265,15 @@ export const createProduct = async (
         discountCodes,
         customProperties,
         customer_specification,
+images: {
+  create: images
+    .filter((img: any) => img && img.fileId && img.url)
+    .map((img: any) => ({
+      file_id: img.fileId,
+      url: img.url,
+    })),
+},
 
-        images: {
-          create: images.map((image: any) => ({
-            file_id: image.fileId,
-            url: image.file_url,
-          })),
-        },
       },
       include: {
         images: true,
