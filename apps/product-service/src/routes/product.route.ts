@@ -1,6 +1,7 @@
 import { isAuthenticated } from "./../../../auth-service/src/middleware/isAuth";
 import {
   createDiscountCodes,
+  createProduct,
   deleteDiscountCodes,
   deleteProductImage,
   getCategories,
@@ -24,6 +25,11 @@ router.delete(
   "/delete-product-image",
   isAuthenticated,
   deleteProductImage
+);
+router.post(
+  "/create-product",
+  isAuthenticated,
+  createProduct
 );
 router.post(
   "/upload-product-image",

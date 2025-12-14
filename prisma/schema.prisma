@@ -7,14 +7,22 @@ datasource db {
     url      = env("MONGO_URI")
 }
 
+enum productStatus {
+    Active
+    Pending
+    Draft
+}
+
 model images {
-    id      String  @id @default(auto()) @map("_id") @db.ObjectId
-    file_id String
-    url     String
-    userId  String? @unique @db.ObjectId
-    shopId  String? @unique @db.ObjectId
-    users   users?  @relation(fields: [userId], references: [id])
-    shops   shops?  @relation(fields: [shopId], references: [id])
+    id         String    @id @default(auto()) @map("_id") @db.ObjectId
+    file_id    String
+    url        String
+    userId     String?   @unique @db.ObjectId
+    shopId     String?   @unique @db.ObjectId
+    users      users?    @relation(fields: [userId], references: [id])
+    shops      shops?    @relation(fields: [shopId], references: [id])
+    products   products? @relation(fields: [productsId], references: [id])
+    productsId String?   @db.ObjectId
 }
 
 model users {
@@ -47,6 +55,7 @@ model shops {
     reviews   shopReview[]
     createdAt DateTime     @default(now())
     updatedAt DateTime     @updatedAt
+    products  products[]
 }
 
 model shopReview {
@@ -91,4 +100,40 @@ model discount_codes {
     sellerId      String   @db.ObjectId
     createdAt     DateTime @default(now())
     updatedAt     DateTime @updatedAt
+}
+
+model products {
+    id                     String    @id @default(auto()) @map("_id") @db.ObjectId
+    title                  String
+    detailed_description   String
+    short_description      String
+    warranty               String?
+    customer_specification Json?
+    tags                   String?
+    slug                   String    @unique
+    brand                  String?
+    category               String
+    video_url              String?
+    colors                 String[]
+    sizes                  String[]
+    starting_date          DateTime?
+    end_date               DateTime?
+    stock                  Int
+    ratings                Float     @default(5)
+    sale_price             Float
+    regular_price          Float
+    subCategory            String
+    customProperties       Json
+    images                 images[]
+    isDeleted              Boolean?  @default(false)
+    cash_on_delivery       String?
+
+    discountCodes String[]      @db.ObjectId
+    status        productStatus @default(Active)
+    deletedAt     DateTime?
+    createdAt     DateTime      @default(now())
+    updatedAt     DateTime      @updatedAt
+    shopId        String        @db.ObjectId
+
+    Shop shops @relation(fields: [shopId], references: [id])
 }

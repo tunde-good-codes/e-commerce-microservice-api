@@ -1,3 +1,4 @@
+import { discount_codes } from './../../../../node_modules/.prisma/client/index.d';
 import { imageKit } from "@/utils/imageKit";
 import { ValidationError } from "@shared/error-handler";
 import prisma from "@shared/prisma";
@@ -174,5 +175,112 @@ export const deleteProductImage = async (
     });
   } catch (error) {
     next(error);
+  }
+};
+
+
+
+
+export const createProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.seller?.id) {
+      return next(new ValidationError("Only sellers can create products"));
+    }
+
+    const {
+      title,
+      short_description,
+      detailed_description,
+      warranty,
+      customer_specification,
+      tags,
+      slug,
+      brand,
+      cash_on_delivery,
+      category,
+      video_url,
+      colors = [],
+      sizes = [],
+      discountCodes = [],
+      stock,
+      sale_price,
+      regular_price,
+      subCategory,
+      customProperties = {},
+      images = [],
+    } = req.body;
+
+    if (
+      !title ||
+      !short_description ||
+      !detailed_description ||
+      !slug ||
+      !category ||
+      !subCategory ||
+      images.length === 0 ||
+      stock === undefined ||
+      sale_price === undefined ||
+      regular_price === undefined
+    ) {
+      return next(new ValidationError("Required fields missing"));
+    }
+
+    const slugChecking = await prisma.products.findUnique({
+      where: { slug },
+    });
+
+    if (slugChecking) {
+      return next(new ValidationError("Use a different slug"));
+    }
+
+    const newProduct = await prisma.products.create({
+      data: {
+        title,
+        short_description,
+        detailed_description,
+        warranty,
+        cash_on_delivery,
+        slug,
+        shopId: req.seller.id,
+
+        tags: Array.isArray(tags) ? tags.join(",") : tags,
+        brand,
+        video_url,
+        category,
+        subCategory,
+
+        colors,
+        sizes,
+
+        stock: Number(stock),
+        sale_price: Number(sale_price),
+        regular_price: Number(regular_price),
+
+        discountCodes,
+        customProperties,
+        customer_specification,
+
+        images: {
+          create: images.map((image: any) => ({
+            file_id: image.fileId,
+            url: image.file_url,
+          })),
+        },
+      },
+      include: {
+        images: true,
+      },
+    });
+
+    res.status(201).json({
+      message: "Product created successfully",
+      product: newProduct,
+    });
+  } catch (e) {
+    next(e);
   }
 };
