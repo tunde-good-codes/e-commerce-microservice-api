@@ -325,7 +325,7 @@ export const deleteProduct = async (
   try {
     const { productId } = req.params;
     const sellerId = req.seller.shop.id;
-    const products = await prisma.products.findMany({
+    const products = await prisma.products.findUnique({
       where: {
         id: productId,
       },
@@ -361,6 +361,66 @@ export const deleteProduct = async (
         id:productId
       }, data:{
         isDeleted:true, deletedAt: new Date(Date.now() + 24 * 60 *60 *1000 )
+      }
+    })
+
+
+
+    res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (e: any) {
+    return res.status(500).json({
+      success: false,
+      message: "internal server error: " + e.message,
+    });
+  }
+};
+export const restoreProduct = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { productId } = req.params;
+    const sellerId = req.seller.shop.id;
+    const products = await prisma.products.findUnique({
+      where: {
+        id: productId,
+      },
+      select: {
+        id: true,
+        shopId: true,
+        isDeleted: true,
+      },
+    });
+    if (!products) {
+      return res.status(401).json({
+        success: false,
+        message: "unauthorized",
+      });
+    }
+    if (products?.shopId !== sellerId ) {
+      return res.status(401).json({
+        success: false,
+        message: "unauthorized",
+      });
+    }
+    if (!products.isDeleted) {
+      return res.status(401).json({
+        success: false,
+        message: "product already deleted",
+      });
+    }
+
+
+
+    await prisma.products.update({
+      where:{
+        id:productId
+      }, data:{
+        isDeleted:false, deletedAt: null
       }
     })
 
