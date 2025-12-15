@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-
+import "./jobs/productCronJobs"
 //import * as path from "path";
 
 import cookieParser from "cookie-parser";
