@@ -6,6 +6,7 @@ import {
   deleteProductImage,
   getCategories,
   getDiscountCodes,
+  getShopProducts,
   uploadProductImage,
 } from "@/controllers/product.controllers";
 import { upload } from "@/utils/multer";
@@ -30,6 +31,11 @@ router.post(
   "/create-product",
   isAuthenticated,
   createProduct
+);
+router.get(
+  "/get-shop-product",
+  isAuthenticated,
+  getShopProducts
 );
 router.post(
   "/upload-product-image",

@@ -1,4 +1,5 @@
-import { discount_codes } from './../../../../node_modules/.prisma/client/index.d';
+import { sellers } from "@prisma/client";
+import { discount_codes } from "./../../../../node_modules/.prisma/client/index.d";
 import { imageKit } from "@/utils/imageKit";
 import { ValidationError } from "@shared/error-handler";
 import prisma from "@shared/prisma";
@@ -178,9 +179,6 @@ export const deleteProductImage = async (
   }
 };
 
-
-
-
 export const createProduct = async (
   req: Request,
   res: Response,
@@ -247,9 +245,9 @@ export const createProduct = async (
         slug,
         shopId: req.seller.id,
 
-tags: Array.isArray(tags)
-  ? tags
-  : tags.split(",").map((t: string) => t.trim()),
+        tags: Array.isArray(tags)
+          ? tags
+          : tags.split(",").map((t: string) => t.trim()),
         brand,
         video_url,
         category,
@@ -265,15 +263,14 @@ tags: Array.isArray(tags)
         discountCodes,
         customProperties,
         customer_specification,
-images: {
-  create: images
-    .filter((img: any) => img && img.fileId && img.url)
-    .map((img: any) => ({
-      file_id: img.fileId,
-      url: img.url,
-    })),
-},
-
+        images: {
+          create: images
+            .filter((img: any) => img && img.fileId && img.url)
+            .map((img: any) => ({
+              file_id: img.fileId,
+              url: img.url,
+            })),
+        },
       },
       include: {
         images: true,
@@ -286,5 +283,97 @@ images: {
     });
   } catch (e) {
     next(e);
+  }
+};
+
+export const getShopProducts = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const products = await prisma.products.findMany({
+      where: {
+        shopId: req.seller.shop.id,
+      },
+      include: {
+        images: true,
+      },
+    });
+    if (!products) {
+      return res.status(401).json({
+        success: false,
+        message: "no codes found",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (e: any) {
+    return res.status(500).json({
+      success: false,
+      message: "internal server error: " + e.message,
+    });
+  }
+};
+export const deleteProduct = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { productId } = req.params;
+    const sellerId = req.seller.shop.id;
+    const products = await prisma.products.findMany({
+      where: {
+        id: productId,
+      },
+      select: {
+        id: true,
+        shopId: true,
+        isDeleted: true,
+      },
+    });
+    if (!products) {
+      return res.status(401).json({
+        success: false,
+        message: "unauthorized",
+      });
+    }
+    if (products?.shopId !== sellerId ) {
+      return res.status(401).json({
+        success: false,
+        message: "unauthorized",
+      });
+    }
+    if (products.isDeleted) {
+      return res.status(401).json({
+        success: false,
+        message: "product already deleted",
+      });
+    }
+
+
+
+    const deletedProduct = await prisma.products.update({
+      where:{
+        id:productId
+      }, data:{
+        isDeleted:true, deletedAt: new Date(Date.now() + 24 * 60 *60 *1000 )
+      }
+    })
+
+
+
+    res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (e: any) {
+    return res.status(500).json({
+      success: false,
+      message: "internal server error: " + e.message,
+    });
   }
 };
